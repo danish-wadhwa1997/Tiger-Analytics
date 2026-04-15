@@ -1,62 +1,83 @@
-# Retail Pricing Feed Management (Case Study)
+# Retail Pricing Feed Management
 
-Single-page web application for uploading, searching, and editing pricing feeds for a retail chain.
+Single-page web application for uploading, searching, and editing pricing feeds for a retail chain with 3000+ stores across multiple countries.
 
-## Stack
+## Technology Stack
 
-- Frontend: React + TypeScript + Vite
-- Backend: Node.js + Express + TypeScript
-- Database: PostgreSQL
-- Auth: JWT with RBAC (`admin`, `editor`, `viewer`)
-- Runtime: Docker Compose
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, TanStack Query, Fuse.js |
+| Backend | Node.js, Express 5, TypeScript |
+| Database | PostgreSQL 16 |
+| Auth | JWT with RBAC (admin, editor, viewer) |
+| Runtime | Docker Compose |
 
-## Functional Coverage
-
-- Upload CSV pricing feed with schema:
-  - `Store ID, SKU, Product Name, Price, Date`
-- Persist and upsert pricing records
-- Search pricing records using multiple criteria
-- Edit/save pricing records
-- Audit trail for every pricing edit
-
-## Local Run
+## Quick Start
 
 ```bash
 docker compose up --build
 ```
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:4000`
-- Health: `http://localhost:4000/health`
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:4000 |
+| Health check | http://localhost:4000/health |
 
 ## Demo Credentials
 
-- `admin` / `Password123!`
-- `editor` / `Password123!`
-- `viewer` / `Password123!`
+| Username | Password | Role | Permissions |
+|---|---|---|---|
+| admin | Password123! | admin | Upload, search, edit |
+| editor | Password123! | editor | Upload, search, edit |
+| viewer | Password123! | viewer | Search only |
 
-## Sample CSV
+## Functional Coverage
 
-Use `sample-data/pricing-feed-sample.csv` as initial upload content.
+- Upload CSV pricing feeds (file picker or paste) with schema: `Store ID, SKU, Product Name, Price, Date`
+- Batch upsert with idempotency on `(store_id, sku, price_date)`
+- Search with exact ID filters, partial product name match, price range, date range
+- Client-side fuzzy search within loaded results
+- Server-side pagination with total count
+- Edit/save with optimistic locking (version-based conflict detection)
+- Full audit trail for every pricing edit
 
-## API Endpoints
+## Architecture
 
-- `POST /auth/login`
-- `POST /pricing/upload` (admin/editor)
-- `GET /pricing/search` (all authenticated users)
-- `PUT /pricing/:id` (admin/editor)
+```
+backend/src/
+├── config/          # Environment, DB pool
+├── middleware/       # Auth, error handler, rate limiter
+├── modules/
+│   ├── auth/        # Login (validator → service → routes)
+│   ├── upload/      # CSV ingest (validator → service → routes)
+│   └── pricing/     # Search/edit (validator → repository → service → routes)
+├── types/           # Shared interfaces
+├── app.ts           # Express bootstrap
+└── index.ts         # Server entry
 
-## Architecture Artifacts
+frontend/src/
+├── api/             # HTTP client, auth API, pricing API
+├── hooks/           # useAuth, usePricingSearch
+├── components/      # LoginView, UploadPanel, SearchPanel,
+│                    # ResultsTable, Pagination, EditDrawer, StatusMessage
+├── types/           # Shared interfaces
+├── App.tsx          # Root composition shell
+└── main.tsx         # React entry
+```
 
-- `docs/context-diagram.md`
-- `docs/solution-architecture.md`
-- `docs/design-decisions.md`
-- `docs/non-functional-requirements.md`
-- `docs/assumptions.md`
+## Documentation
 
-## Risks and Future Improvements
+| Document | Path |
+|---|---|
+| Context Diagram | [docs/context-diagram.md](docs/context-diagram.md) |
+| Solution Architecture | [docs/solution-architecture.md](docs/solution-architecture.md) |
+| Design Decisions (ADRs) | [docs/design-decisions.md](docs/design-decisions.md) |
+| Non-Functional Requirements | [docs/non-functional-requirements.md](docs/non-functional-requirements.md) |
+| Assumptions | [docs/assumptions.md](docs/assumptions.md) |
+| Known Limitations | [docs/limitations.md](docs/limitations.md) |
+| API Reference | [docs/api-reference.md](docs/api-reference.md) |
 
-- Move CSV ingest to queue workers for very large feed sizes.
-- Add optimistic locking (version token) for concurrent edit conflict handling.
-- Add integration tests and contract tests for API.
-- Add distributed tracing and alerting for production operations.
+## Sample Data
+
+Use `sample-data/pricing-feed-sample.csv` for initial upload testing.

@@ -21,15 +21,21 @@ CREATE TABLE IF NOT EXISTS pricing_record (
   product_name TEXT NOT NULL,
   price NUMERIC(12, 2) NOT NULL CHECK (price > 0),
   price_date DATE NOT NULL,
+  version INTEGER NOT NULL DEFAULT 0,
   source_feed_id INTEGER REFERENCES feed_upload(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (store_id, sku, price_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_pricing_record_store_sku_date ON pricing_record(store_id, sku, price_date DESC);
-CREATE INDEX IF NOT EXISTS idx_pricing_record_product_name ON pricing_record(product_name);
-CREATE INDEX IF NOT EXISTS idx_pricing_record_price_date ON pricing_record(price_date DESC);
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_pricing_store_sku_date
+  ON pricing_record(store_id, sku, price_date DESC);
+CREATE INDEX IF NOT EXISTS idx_pricing_product_name
+  ON pricing_record USING gin (product_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_pricing_price_date
+  ON pricing_record(price_date DESC);
 
 CREATE TABLE IF NOT EXISTS pricing_record_audit (
   id SERIAL PRIMARY KEY,
