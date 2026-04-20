@@ -77,6 +77,7 @@ frontend/src/
 | Assumptions | [docs/assumptions.md](docs/assumptions.md) |
 | Known Limitations | [docs/limitations.md](docs/limitations.md) |
 | API Reference | [docs/api-reference.md](docs/api-reference.md) |
+| Interview cheat sheet (detailed) | [docs/interview-cheat-sheet.md](docs/interview-cheat-sheet.md) |
 
 ## Sample Data
 
